@@ -1,88 +1,111 @@
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.util.*;
 import java.io.*;
 
-public class Main 
-{
+public class Main {
 
-  // array of 10 Country objects
-  private Country[] countryArray = new Country[10];  
-  // index of current shown country
-  private int index = 0;
+    // Array of 10 Country objects
+    private Country[] countryArray = new Country[10];  
+    // Index of current shown country
+    private int index = 0;
 
-  // GUI elements
-  private JFrame jFrame = new JFrame("Countries");
-  private ImageIcon img;
-  private JLabel imageLabel;
-  private JLabel outputLabel;
-  
-  public static void main(String[] args) {
-    // Create the GUI
-    Main gui = new Main();
-    gui.loadCountries();
-    gui.showCountry();
-  }
+    // GUI elements
+    private JFrame jFrame = new JFrame("Countries");
+    private ImageIcon img;
+    private JLabel imageLabel;
+    private JLabel outputLabel;
 
-  /* loadCountries() reads in the data from the countries-data.csv file and fills in the countryArray with data. You need to add the loop that reads in the country data into the array. */
-  public void loadCountries() 
-  {
-    // Open the data file - do not change
-    File file = new File("/workspaces/Countries/workspace/countries-data.csv");
-    Scanner scan = null;
-    try {
-      scan = new Scanner(file);
-    } catch(FileNotFoundException e) { 
-        System.out.println("File not found");     
+    public static void main(String[] args) {
+        // Create the GUI
+        Main gui = new Main();
+        gui.loadCountries();
+        gui.showCountry();
     }
-    
-    // Write a for loop that goes through the countryArray.
-    // for(int i ....) {
-    // Do the following inside the loop
-      String input = scan.nextLine();
-      String[] data = input.split(",");
-      System.out.println("Read in " + data[0]);
-      // inside the loop, create a new Country using your constructor with 3 arguments and pass in data[0], data[1], data[2], data[3] as arguments.
-     // inside the loop, set countryArray[i] to the created Country object
-     
-    
-  }
 
-  /* showCountry() will show the image associated with the current country. It should get the country at index from the countryArray. It should use its get method to get its image file name and use the code below to put the image in the GUI.
-  */
-  public void showCountry() {
-    // Get the country at index from countryArray
-    
-    // Use its get method to get the its image file name and save it into imagefile variable below instead of worldmap.jpg.
-    String imagefile = "worldmap.jpg";
-    // Use the following code to create an new Image Icon and put it into the GUI
-    img = new ImageIcon("/workspaces/Countries/workspace/"+imagefile);
-    imageLabel.setIcon(img);
-  }
-  
-  /* nextButton should increment index. If the index is greater than 9, reset it back to 0. Clear the outputLabel to empty string using setText, and call showCountry();*/
-  public void nextButtonClick()
-  {
-    
-  }
-  
-  /* reviewButton should get the country at index from the countryArray, call its toString() method and save the result, print it out with System.out.println and as an argument to outputLabel.setText( text to print out ); */
-  public void reviewButtonClick()
-  {
-     
-  }
+    /* loadCountries() reads in the data from the countries-data.csv file and fills in the countryArray with data. */
+    public void loadCountries() {
+        // Open the data file - do not change
+        File file = new File("/workspaces/Countries/workspace/countries-data.csv");
+        Scanner scan = null;
+        
+        try {
+            scan = new Scanner(file);
+        } catch (FileNotFoundException e) { 
+            System.out.println("File not found");
+            return; // Exit the method if the file is not found
+        }
+        
+        // Populate countryArray
+        for (int i = 0; i < countryArray.length && scan.hasNextLine(); i++) {
+            String input = scan.nextLine();
+            String[] data = input.split(",");
+            if (data.length >= 4) { // Ensure enough data in the row
+                countryArray[i] = new Country(data[0], data[1], data[2], data[3]);
+                System.out.println("Loaded: " + data[0]); // Debugging
+            } else {
+                System.out.println("Invalid data format: " + input);
+            }
+        }
+        scan.close();
+    }
 
-  /* quizButton should clear the outputLabel (outputLabel.setText to empty string), get the country at index from countryArray, print out a question about it like What country is this? and/or What's this country's capital?. Get the user's answer using scan.nextLine() and check if it is equal to the country's data using its get methods and print out correct or incorrect.
-  */
-  public void quizButtonClick()
-  {
-    Scanner scan = new Scanner(System.in); 
-    
-    
-    
-  }
+    /* showCountry() will show the image associated with the current country. */
+    public void showCountry() {
+        if (countryArray[index] != null) {
+            // Get the image file name from the country object
+            String imagefile = countryArray[index].getImageFile();
+            img = new ImageIcon("/workspaces/Countries/workspace/" + imagefile);
+            imageLabel.setIcon(img); // Update the image in the GUI
+        } else {
+            System.out.println("No country data available at index " + index);
+        }
+    }
 
+    /* nextButton should increment index. If the index is greater than 9, reset it back to 0. Clear the outputLabel and call showCountry(). */
+    public void nextButtonClick() {
+        index += 1;
+        if (index > 9) { // Wrap around to the first country
+            index = 0;
+        }
+        outputLabel.setText(""); // Clear the output label
+        showCountry(); // Display the next country's image
+    }
+
+    /* reviewButton should display the current country's details. */
+    public void reviewButtonClick() {
+        if (countryArray[index] != null) {
+            String info = countryArray[index].toString();
+            System.out.println(info); // Print to console for debugging
+            outputLabel.setText(info); // Display the information in the GUI
+        } else {
+            System.out.println("No country data available at index " + index);
+        }
+    }
+
+    /* quizButton should ask a question about the current country and validate the user's answer. */
+    public void quizButtonClick() {
+        outputLabel.setText(""); // Clear the output label
+        Scanner scan = new Scanner(System.in);
+
+        if (countryArray[index] != null) {
+            System.out.println("What is the capital of " + countryArray[index].getName() + "?");
+            String userAnswer = scan.nextLine();
+
+            if (userAnswer.equalsIgnoreCase(countryArray[index].getCapital())) {
+                System.out.println("Correct!");
+                outputLabel.setText("Correct!");
+            } else {
+                System.out.println("Incorrect! The correct answer is " + countryArray[index].getCapital());
+                outputLabel.setText("Incorrect! The correct answer is " + countryArray[index].getCapital());
+            }
+        } else {
+            System.out.println("No country data available at index " + index);
+        }
+        scan.close();
+    }
 
 
 
